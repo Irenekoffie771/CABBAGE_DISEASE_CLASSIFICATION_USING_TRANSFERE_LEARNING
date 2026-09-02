@@ -32,6 +32,7 @@ migrate_working_dir/
 /android/app/build/
 /android/build/
 /android/.android_cache/
+/android/.kotlin/
 android/app/debug
 android/app/profile
 android/app/release
