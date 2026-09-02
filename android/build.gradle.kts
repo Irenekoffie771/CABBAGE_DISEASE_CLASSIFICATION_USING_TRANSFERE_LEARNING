@@ -23,6 +23,9 @@ subprojects {
 // Force all modules (app + plugins) to use the same compatible versions
 subprojects {
     fun configureProject() {
+        // Skip the app module to avoid "sourceCompatibility has been finalized" error
+        if (project.name == "app") return
+
         if (project.hasProperty("android")) {
             val android = project.extensions.getByName("android") as? com.android.build.gradle.BaseExtension
             android?.apply {

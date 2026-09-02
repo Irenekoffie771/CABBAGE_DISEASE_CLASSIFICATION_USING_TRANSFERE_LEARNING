@@ -13,9 +13,14 @@ class TFLiteService implements TFLiteServiceInterface {
   Interpreter? _interpreter;
   List<String> _labels = [
     'Alternaria Leaf Spot',
+    'Bacterial Soft Rot',
     'Black Rot',
+    'Cabbage Aphid Infestation',
     'Downy Mildew',
-    'Healthy'
+    'Healthy',
+    'Not a Cabbage Leaf',
+    'Club Root',
+    'Ring Spot',
   ];
 
   @override
@@ -24,13 +29,14 @@ class TFLiteService implements TFLiteServiceInterface {
     try {
       final options = InterpreterOptions()..threads = 4;
       _interpreter = await Interpreter.fromAsset(
-        'assets/mobilev2/cabbage_mobilenetv2.tflite',
+        'assets/model/cabbage_float32.tflite',
         options: options,
       );
       _interpreter!.allocateTensors();
       
       final inputTensor = _interpreter!.getInputTensor(0);
-      debugPrint('TFLite Model Metadata: Shape=${inputTensor.shape}, Type=${inputTensor.type}');
+      final outputTensor = _interpreter!.getOutputTensor(0);
+      debugPrint('TFLite Model Metadata: Input Shape=${inputTensor.shape}, Type=${inputTensor.type}; Output Shape=${outputTensor.shape}');
 
       try {
         final labelsData = await rootBundle.loadString('assets/model/cabbage_labels.txt');
@@ -69,35 +75,40 @@ class TFLiteService implements TFLiteServiceInterface {
       if (image == null) return null;
       image = img.bakeOrientation(image);
 
-      // MobileNetV2 dimensions as requested
-      const int inputSize = 224;
-      img.Image resizedImage = img.copyResize(image, width: inputSize, height: inputSize);
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
 
-      // Allocate the Float32 buffer (1 * 224 * 224 * 3)
-      var inputBuffer = Float32List(1 * inputSize * inputSize * 3);
+      // Input dimension specified as 299x299 (NHWC RGB)
+      final int inputHeight = inputTensor.shape.length > 1 ? inputTensor.shape[1] : 299;
+      final int inputWidth = inputTensor.shape.length > 2 ? inputTensor.shape[2] : 299;
+
+      img.Image resizedImage = img.copyResize(image, width: inputWidth, height: inputHeight);
+
+      // Allocate the Float32 buffer (1 * height * width * 3)
+      var inputBuffer = Float32List(1 * inputHeight * inputWidth * 3);
       int index = 0;
 
-      // Extract channels sequentially (RGB sequence) using raw 0.0 - 255.0 floats
-      for (int y = 0; y < inputSize; y++) {
-        for (int x = 0; x < inputSize; x++) {
+      // Extract channels sequentially (RGB sequence) using raw 0.0 - 255.0 floats (normalisation is baked into the model)
+      for (int y = 0; y < inputHeight; y++) {
+        for (int x = 0; x < inputWidth; x++) {
           var pixel = resizedImage.getPixel(x, y);
           
-          // Pass clean raw 0.0 - 255.0 floats directly. No manual division required!
           inputBuffer[index++] = pixel.r.toDouble();
           inputBuffer[index++] = pixel.g.toDouble();
           inputBuffer[index++] = pixel.b.toDouble();
         }
       }
 
-      var output = Float32List(_labels.length).reshape([1, _labels.length]);
-      _interpreter!.run(inputBuffer.reshape([1, inputSize, inputSize, 3]), output);
+      int numClasses = outputTensor.shape.length > 1 ? outputTensor.shape[1] : _labels.length;
+      var output = Float32List(numClasses).reshape([1, numClasses]);
+      _interpreter!.run(inputBuffer.reshape([1, inputHeight, inputWidth, 3]), output);
 
       List<double> probabilities = List<double>.from(output[0]);
       double maxScore = 0.0;
       int maxIndex = 0;
 
       debugPrint('--- AI DEBUG SCORES (RAW 0-255 RGB) ---');
-      for (int i = 0; i < probabilities.length; i++) {
+      for (int i = 0; i < probabilities.length && i < _labels.length; i++) {
         debugPrint('${_labels[i]}: ${(probabilities[i] * 100).toStringAsFixed(2)}%');
         if (probabilities[i] > maxScore) {
           maxScore = probabilities[i];
@@ -106,23 +117,26 @@ class TFLiteService implements TFLiteServiceInterface {
       }
       debugPrint('---------------------------------------');
 
-      const double threshold = 0.67;
+      // Model specification: confidence threshold = 0.891
+      const double threshold = 0.891;
       bool isConfident = maxScore >= threshold;
+      String predictedLabel = maxIndex < _labels.length ? _labels[maxIndex] : 'Unidentified';
+      bool isNotLeaf = maxIndex == 6 || predictedLabel == 'Not a Cabbage Leaf' || predictedLabel == 'Not cabbage';
 
-      if (!isConfident) {
+      if (!isConfident || isNotLeaf) {
         return {
-          'label': 'Unidentified / Not a Leaf',
+          'label': isNotLeaf ? 'Not a Cabbage Leaf' : 'Unidentified / Not a Leaf',
           'confidence': maxScore,
-          'index': 3,
+          'index': maxIndex,
           'isLeaf': false,
         };
       }
 
       return {
-        'label': _labels[maxIndex],
+        'label': predictedLabel,
         'confidence': maxScore,
         'index': maxIndex,
-        'isLeaf': isConfident, 
+        'isLeaf': true, 
         'all_scores': probabilities,
       };
     } catch (e) {

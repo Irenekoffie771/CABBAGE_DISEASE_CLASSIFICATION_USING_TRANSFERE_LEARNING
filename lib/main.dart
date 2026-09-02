@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -118,15 +119,26 @@ class _CabbageDoctorAppState extends State<CabbageDoctorApp> {
               onSurface: const Color(0xFF1B5E20),
               brightness: Brightness.light,
             ),
+            textTheme: GoogleFonts.plusJakartaSansTextTheme(
+              ThemeData.light().textTheme,
+            ).apply(
+              bodyColor: const Color(0xFF1B5E20),
+              displayColor: const Color(0xFF1B5E20),
+            ),
             cardTheme: CardThemeData(
               elevation: 0,
               color: const Color(0xFFF1F8E9),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               clipBehavior: Clip.antiAlias,
             ),
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               centerTitle: true,
               elevation: 0,
+              titleTextStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF1B5E20),
+              ),
             ),
           ),
           darkTheme: ThemeData(
@@ -140,15 +152,26 @@ class _CabbageDoctorAppState extends State<CabbageDoctorApp> {
               onSurface: Colors.white,
               brightness: Brightness.dark,
             ),
+            textTheme: GoogleFonts.plusJakartaSansTextTheme(
+              ThemeData.dark().textTheme,
+            ).apply(
+              bodyColor: Colors.white,
+              displayColor: Colors.white,
+            ),
             cardTheme: CardThemeData(
               elevation: 0,
               color: const Color(0xFF1B241B),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               clipBehavior: Clip.antiAlias,
             ),
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               centerTitle: true,
               elevation: 0,
+              titleTextStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
           home: const SplashScreen(),

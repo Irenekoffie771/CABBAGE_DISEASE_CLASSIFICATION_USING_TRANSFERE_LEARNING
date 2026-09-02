@@ -1,4 +1,9 @@
-Alternaria_Leaf_Spot
+Alternaria Leaf Spot
+Bacterial Soft Rot
 Black Rot
+Cabbage Aphid Infestation
 Downy Mildew
 Healthy
+Not a Cabbage Leaf
+Club Root
+Ring Spot

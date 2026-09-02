@@ -20,6 +20,7 @@ import 'schedule_screen.dart';
 import 'weather_screen.dart';
 import 'login_screen.dart';
 import 'help_screen.dart';
+import 'live_scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -75,6 +76,95 @@ class HomeScreen extends StatelessWidget {
     if (context.mounted && provider.currentPrediction != null) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const ResultScreen()));
     }
+  }
+
+  void _handleGalleryUploadOption(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                provider.tr('Choose Image Source'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.photo_library_rounded, color: colorScheme.primary),
+                ),
+                title: Text(
+                  provider.tr('Upload from Gallery'),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  provider.tr('Select an existing leaf photo from device'),
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleScan(context, ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondary.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.camera_alt_rounded, color: colorScheme.primary),
+                ),
+                title: Text(
+                  provider.tr('Capture Static Image'),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  provider.tr('Take a single photo for scanning'),
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleScan(context, ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -202,9 +292,25 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            Expanded(child: _buildActionCard('Camera', 'Scan Leaf', Icons.camera_rounded, colorScheme.primary, () => _handleScan(context, ImageSource.camera))),
+                            Expanded(
+                              child: _buildActionCard(
+                                'Camera',
+                                'Scan Leaf',
+                                Icons.camera_rounded,
+                                colorScheme.primary,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveScanScreen())),
+                              ),
+                            ),
                             const SizedBox(width: 12),
-                            Expanded(child: _buildActionCard('Gallery', 'Upload', Icons.image_search_rounded, colorScheme.secondary, () => _handleScan(context, ImageSource.gallery))),
+                            Expanded(
+                              child: _buildActionCard(
+                                'Gallery',
+                                'Upload',
+                                Icons.image_search_rounded,
+                                colorScheme.secondary,
+                                () => _handleGalleryUploadOption(context),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),

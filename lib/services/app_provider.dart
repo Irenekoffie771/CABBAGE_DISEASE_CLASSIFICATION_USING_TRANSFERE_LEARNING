@@ -347,6 +347,61 @@ class AppProvider with ChangeNotifier {
       'twi_treatment': 'Kɔ so hwɛ wo nnɔbae no so yiye na kɔ so yɛ adwuma pa.',
       'image': 'assets/images/c1.jpg'
     },
+    'Bacterial Soft Rot': {
+      'description': 'A severe bacterial infection that causes water-soaked lesions and rapid rotting of cabbage heads.',
+      'symptoms': '• Water-soaked, soft, slimy leaf lesions\n• Foul, offensive odor\n• Collapse of whole cabbage heads\n• Discolored vascular tissues',
+      'causes': '• Pectobacterium carotovorum (Erwinia carotovora)\n• High moisture and warm weather\n• Plant injuries from insects or handling',
+      'prevention': '• Avoid physical injury during harvesting/cultivation\n• Ensure good field drainage and air flow\n• Rotate crops with non-susceptible plants',
+      'treatment': '• Remove and destroy infected plants\n• Apply copper bactericides early\n• Allow soil to dry between waterings',
+      'twi_name': 'Bacterial Soft Rot Yadeɛ',
+      'twi_description': 'Yadeɛ yi firi mmoawa a ɛma kabeji no fɔm yɛ meree na ɛbɔ bon bi kɛseɛ.',
+      'twi_treatment': 'Yi nkabeji a afei pɔrɔ no fi afuo no mu, na hwɛ ma asase no so nyina ne ho nsuo.',
+      'image': 'assets/images/c5.jpg'
+    },
+    'Cabbage Aphid Infestation': {
+      'description': 'Pest infestation caused by gray-green aphids feeding on cabbage leaf sap.',
+      'symptoms': '• Curled, distorted, or yellowing leaves\n• Sticky honeydew on leaf surfaces\n• Clusters of small gray-green insects\n• Stunted plant growth',
+      'causes': '• Brevicoryne brassicae (Cabbage aphids)\n• Dry, warm weather favoring rapid reproduction\n• Lack of natural aphid predators',
+      'prevention': '• Inspect leaves regularly\n• Encourage natural predators like ladybugs\n• Use floating row covers on young plants',
+      'treatment': '• Spray insecticidal soap or neem oil\n• Apply systemic or contact insecticides if severe\n• Wash off aphids with strong water spray',
+      'twi_name': 'Kabeji Mmoawa Nkitinkiti',
+      'twi_description': 'Mmoawa nkitinkiti a wɔnom nhaban no nsuo na ɛma nhaban no bɔ kinkyim na ɛyɛ kokoo.',
+      'twi_treatment': 'Fa Neem ngo anaa samina aduru gu nhaban no so na kum mmoawa no.',
+      'image': 'assets/images/c6.jpg'
+    },
+    'Club Root': {
+      'description': 'A soil-borne disease causing distorted, swollen root galls and wilting leaves.',
+      'symptoms': '• Swollen, knobby, or distorted roots\n• Wilting leaves during hot daytime hours\n• Yellowing and stunted growth\n• Reduced head formation',
+      'causes': '• Plasmodiophora brassicae pathogen\n• Acidic, poorly-drained soil\n• Spores persisting in soil for many years',
+      'prevention': '• Maintain soil pH above 7.2 using lime\n• Ensure proper field drainage\n• Practice long crop rotations (5–7 years)',
+      'treatment': '• Apply soil lime to raise pH\n• Use soil fungicides at planting\n• Destroy infected root systems after harvest',
+      'twi_name': 'Club Root Yadeɛ',
+      'twi_description': 'Yadeɛ yi ma nhini no nhro na ɛyɛ akuro ma nhaban no gow awia keteke.',
+      'twi_treatment': 'Fa gyata/lime kɔ dɔteɛ no mu ma yɛnnyɛ nkyene pii, na gyae brassica nnɔbae dua mfe pii.',
+      'image': 'assets/images/c7.jpg'
+    },
+    'Ring Spot': {
+      'description': 'Fungal leaf disease causing dark circular spots with yellow borders.',
+      'symptoms': '• Dark brown spots with concentric ring patterns\n• Yellow halos surrounding leaf spots\n• Small black specks within spots\n• Premature leaf senescence',
+      'causes': '• Mycosphaerella brassicicola fungal pathogen\n• Cool, wet, moist weather\n• Infected crop residues left in field',
+      'prevention': '• Bury or burn crop residues after harvest\n• Use disease-free certified seeds\n• Rotate with non-cruciferous crops',
+      'treatment': '• Spray recommended fungicides\n• Avoid overhead irrigation\n• Remove heavily infected leaves',
+      'twi_name': 'Ring Spot Yadeɛ',
+      'twi_description': 'Yadeɛ yi firi mmoawa a ɛyɛ ahinime ne nkuru nkuru kɔkɔɔ wɔ nhaban no so.',
+      'twi_treatment': 'Sesa aduane no na fa nnuru a ɛfata gu so ntɛm.',
+      'image': 'assets/images/c8.jpg'
+    },
+    'Not a Cabbage Leaf': {
+      'description': 'The scanned image does not appear to be a cabbage leaf.',
+      'symptoms': '• Image shows non-cabbage plants, objects, or blurred backgrounds.',
+      'causes': '• Photo taken of non-cabbage subject or poor lighting/focus.',
+      'prevention': '• Ensure proper lighting and focus directly on a cabbage leaf.',
+      'treatment': '• Please retake the photo focusing clearly on a single cabbage leaf.',
+      'twi_name': 'Ɛnyɛ Kabeji Nhaban',
+      'twi_description': 'Mfonini no nyɛ kabeji nhaban anaa ɛnyɛ fann.',
+      'twi_treatment': 'Sane yɛ mfonini foforɔ a ɛfa kabeji nhaban ho.',
+      'image': 'assets/images/c9.jpg'
+    },
   };
 
   Map<String, dynamic>? getDiseaseDetails(String diseaseName) {
@@ -419,12 +474,14 @@ class AppProvider with ChangeNotifier {
         await Future.delayed(const Duration(milliseconds: 300));
         
         String imagePath = pickedFile.path;
-        io.File? finalImage;
+        io.File finalImage = io.File(pickedFile.path);
 
         if (!kIsWeb) {
-          finalImage = await _cropImage(pickedFile.path, theme, colorScheme);
-          if (finalImage == null) return;
-          imagePath = finalImage.path;
+          final cropped = await _cropImage(pickedFile.path, theme, colorScheme);
+          if (cropped != null) {
+            finalImage = cropped;
+            imagePath = cropped.path;
+          }
         }
 
         _isLoading = true;
@@ -537,6 +594,79 @@ class AppProvider with ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       }
+    }
+  }
+
+  Future<void> processLiveScanResult(String imagePath, Map<String, dynamic> result) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      String savedPath = imagePath;
+      if (!kIsWeb) {
+        final file = io.File(imagePath);
+        if (file.existsSync()) {
+          final directory = await getApplicationDocumentsDirectory();
+          final fileName = 'scan_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final savedImage = await file.copy('${directory.path}/$fileName');
+          _selectedImage = savedImage;
+          savedPath = savedImage.path;
+        }
+      }
+
+      if (result['isLeaf'] == false) {
+        _currentPrediction = Prediction(
+          diseaseName: _language == 'Twi' ? 'Mfomsoɔ' : 'Invalid Image',
+          confidence: (result['confidence'] as num?)?.toDouble() ?? 0.0,
+          description: _language == 'Twi' 
+              ? 'Mfonini a woyiiɛ no nsɛ kabeji nhaban anaa ɛnyɛ fann. Yɛpa wo kyɛw scan kabeji nhaban a ɛfata na fann.' 
+              : 'The image captured does not look like a cabbage leaf or is not clear enough. Please try again with a clear photo of a cabbage leaf.',
+          treatment: _language == 'Twi' ? 'Sane yɛ mfonini foforɔ.' : 'Please retake the photo.',
+          imagePath: savedPath,
+          dateTime: DateTime.now(),
+          isAsset: false,
+          isLeaf: false,
+        );
+      } else {
+        String label = result['label'];
+        double confidence = (result['confidence'] as num?)?.toDouble() ?? 0.0;
+        final data = _diseaseData[label];
+        
+        _currentPrediction = Prediction(
+          diseaseName: _language == 'Twi' ? (data?['twi_name'] ?? label) : label,
+          confidence: confidence,
+          description: _language == 'Twi' ? (data?['twi_description'] ?? 'Ankyerɛmu biara nni hɔ') : (data?['description'] ?? 'Unknown'),
+          treatment: _language == 'Twi' ? (data?['twi_treatment'] ?? 'Ayaresa biara nni hɔ') : (data?['treatment'] ?? 'No treatment info available.'),
+          imagePath: savedPath,
+          dateTime: DateTime.now(),
+          isAsset: false,
+          isLeaf: true,
+        );
+      }
+
+      _history.insert(0, _currentPrediction!);
+      _saveHistory();
+      _checkAndNotifyAnalytics();
+      _isLoading = false;
+      notifyListeners();
+
+      if (!isGuest) {
+        final scanToSave = _currentPrediction!;
+        final fileForCloud = io.File(savedPath);
+        if (fileForCloud.existsSync()) {
+          final bytes = await fileForCloud.readAsBytes();
+          _supabaseService.saveScan(scanToSave, savedPath, bytes).then((_) {
+            debugPrint('Cloud save successful');
+            syncWithCloud();
+          }).catchError((e) {
+            debugPrint('Cloud save failed: $e');
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error processing live scan result: $e');
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

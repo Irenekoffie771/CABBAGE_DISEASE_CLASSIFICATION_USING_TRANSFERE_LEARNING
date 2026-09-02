@@ -18,9 +18,9 @@ class NotificationService {
   Future<void> init() async {
     if (kIsWeb) return; // Local notifications not supported on web in this setup
 
-    // 1. Android Initialization Settings - Reset to confirmed existing icon
+    // 1. Android Initialization Settings - Set custom app icon
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -44,7 +44,7 @@ class NotificationService {
   Future<void> showInstantNotification(int id, String title, String body) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'instant_channel_id_v4', // Incremented ID to reset cache
+      'instant_channel_id_v5', // Incremented ID to reset cache
       'Instant Alerts',
       channelDescription: 'Popup notifications for farm updates',
       importance: Importance.max,
@@ -52,6 +52,7 @@ class NotificationService {
       showWhen: true,
       playSound: true,
       enableVibration: true,
+      icon: '@mipmap/launcher_icon',
     );
     
     const NotificationDetails platformChannelSpecifics =
@@ -73,11 +74,12 @@ class NotificationService {
       tz.TZDateTime.from(scheduledDate, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'scan_channel_v4',
+          'scan_channel_v5',
           'Scan Schedule',
           channelDescription: 'Notifications for scheduled cabbage scans',
           importance: Importance.max,
           priority: Priority.high,
+          icon: '@mipmap/launcher_icon',
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

@@ -6,9 +6,14 @@ import 'tflite_service_interface.dart';
 class TFLiteService implements TFLiteServiceInterface {
   final List<String> _labels = [
     'Alternaria Leaf Spot',
+    'Bacterial Soft Rot',
     'Black Rot',
+    'Cabbage Aphid Infestation',
     'Downy Mildew',
-    'Healthy'
+    'Healthy',
+    'Not a Cabbage Leaf',
+    'Club Root',
+    'Ring Spot',
   ];
 
   @override
@@ -43,12 +48,12 @@ class TFLiteService implements TFLiteServiceInterface {
         String label = data['disease'] ?? 'Healthy';
         double confidence = (data['confidence'] as num?)?.toDouble() ?? 0.0;
 
-        // Threshold check: if confidence is too low, treat as unidentified
-        if (confidence < 0.67) {
+        // Threshold check: model specification confidence threshold = 0.891
+        if (confidence < 0.891 || label == 'Not a Cabbage Leaf' || label == 'Not cabbage') {
           return {
-            'label': 'Unidentified / Not a Leaf',
+            'label': (label == 'Not a Cabbage Leaf' || label == 'Not cabbage') ? 'Not a Cabbage Leaf' : 'Unidentified / Not a Leaf',
             'confidence': confidence,
-            'index': 3,
+            'index': 6,
             'isLeaf': false,
           };
         }
